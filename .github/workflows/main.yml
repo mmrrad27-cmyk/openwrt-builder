@@ -1,4 +1,5 @@
-name: Build OpenWrt EA8300
+name: Build OpenWrt EA8300 v1
+
 
 on:
   workflow_dispatch:
