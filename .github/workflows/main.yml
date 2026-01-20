@@ -34,7 +34,7 @@ jobs:
           ./scripts/feeds install -a
 
        -name: Configure target
-          run: |
+       run: |
           cd openwrt
           cat > .config << 'EOF'
           CONFIG_TARGET_ipq40xx=y
