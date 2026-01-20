@@ -20,7 +20,7 @@ jobs:
             libssl-dev python3-distutils rsync unzip zlib1g-dev \
             file wget
 
-       - name: Clone OpenWrt
+      - name: Clone OpenWrt
         run: |
           git clone https://github.com/openwrt/openwrt.git
           cd openwrt
@@ -32,7 +32,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-       - name: Configure target
+      - name: Configure target
         run: |
           cd openwrt
           cat > .config << 'EOF'
@@ -44,6 +44,18 @@ jobs:
           CONFIG_PACKAGE_wpad-basic-mbedtls=y
           EOF
           make defconfig
+
+      - name: Build firmware
+        run: |
+          cd openwrt
+          make -j$(nproc) || make -j1 V=s
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-ea8300
+          path: openwrt/bin/targets/ipq40xx/generic/*.bin
+
 
 
 
@@ -128,13 +140,4 @@ jobs:
 
           chmod +x files/etc/uci-defaults/99-almadina-defaults
 
-      - name: Build firmware
-        run: |
-          cd openwrt
-          make -j$(nproc) || make -j1 V=s
-
-      - name: Upload firmware
-        uses: actions/upload-artifact@v4
-        with:
-          name: openwrt-ea8300
-          path: openwrt/bin/targets/ipq40xx/generic/*.bin
+ 
