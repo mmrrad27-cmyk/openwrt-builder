@@ -1,4 +1,4 @@
-name: Build OpenWrt EA8300 v1
+name: Build OpenWrt EA8300
 
 
 on:
@@ -37,15 +37,17 @@ jobs:
         run: |
           cd openwrt
           make defconfig
-
-          sed -i 's/# CONFIG_TARGET_ipq40xx is not set/CONFIG_TARGET_ipq40xx=y/' .config
-          sed -i 's/# CONFIG_TARGET_ipq40xx_generic is not set/CONFIG_TARGET_ipq40xx_generic=y/' .config
-          sed -i 's/# CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea8300 is not set/CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea8300=y/' .config
-
-          sed -i 's/# CONFIG_PACKAGE_luci is not set/CONFIG_PACKAGE_luci=y/' .config
-          sed -i 's/# CONFIG_PACKAGE_luci-ssl is not set/CONFIG_PACKAGE_luci-ssl=y/' .config
-
+          ./scripts/diffconfig.sh > diffconfig
+          cat << 'EOF' > diffconfig
+          CONFIG_TARGET_ipq40xx=y
+          CONFIG_TARGET_ipq40xx_generic=y
+          CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea8300=y
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-ssl=y
+          EOF
+          cat diffconfig >> .config
           make defconfig
+
 
       - name: Add default settings
         run: |
