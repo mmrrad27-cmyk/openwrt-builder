@@ -2,18 +2,19 @@ name: Build OpenWrt EA8300
 
 
 on:
-  workflow_dispatch:
+workflow_dispatch:
 
-jobs:
-  build:
+    jobs:
+    build:
     runs-on: ubuntu-22.04
 
     steps: 
-        -name: Checkout
-        uses: actions/checkout@v4
+  - name: Checkout
+      
+  uses: actions/checkout@v4
 
-        -name: Install dependencies
-        run: |
+          - name: Install dependencies
+         run: |
           sudo apt update
           sudo apt install -y \
             build-essential clang flex bison g++ gawk \
@@ -21,19 +22,19 @@ jobs:
             libssl-dev python3-distutils rsync unzip zlib1g-dev \
             file wget
 
-        -name: Clone OpenWrt
+       - name: Clone OpenWrt
         run: |
           git clone https://github.com/openwrt/openwrt.git
           cd openwrt
           git checkout v24.10.0
 
-        -name: Update feeds
+      - name: Update feeds
         run: |
           cd openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-       -name: Configure target
+       - name: Configure target
        run: |
           cd openwrt
           cat > .config << 'EOF'
@@ -61,7 +62,7 @@ jobs:
 
 
 
-        -name: Add default settings
+       - name: Add default settings
        run: |
         cd openwrt
         mkdir -p files/etc/uci-defaults
@@ -142,7 +143,7 @@ jobs:
 
           chmod +x files/etc/uci-defaults/99-almadina-defaults
 
-        -name: Build firmware
+       - name: Build firmware
         run: |
           cd openwrt
           make -j$(nproc) || make -j1 V=s
