@@ -1,20 +1,18 @@
 name: Build OpenWrt EA8300
 
-
 on:
-workflow_dispatch:
+  workflow_dispatch:
 
-    jobs:
-    build:
+jobs:
+  build:
     runs-on: ubuntu-22.04
 
-    steps: 
-  - name: Checkout
-      
-  uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          - name: Install dependencies
-         run: |
+           - name: Install dependencies
+        run: |
           sudo apt update
           sudo apt install -y \
             build-essential clang flex bison g++ gawk \
@@ -35,29 +33,16 @@ workflow_dispatch:
           ./scripts/feeds install -a
 
        - name: Configure target
-       run: |
+        run: |
           cd openwrt
           cat > .config << 'EOF'
           CONFIG_TARGET_ipq40xx=y
           CONFIG_TARGET_ipq40xx_generic=y
           CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea8300=y
-
-          # LuCI
           CONFIG_PACKAGE_luci=y
           CONFIG_PACKAGE_luci-ssl=y
-
-          # WiFi drivers (EA8300)
-          CONFIG_PACKAGE_kmod-ath10k=y
-          CONFIG_PACKAGE_kmod-ath10k-ct=y
-          CONFIG_PACKAGE_ath10k-firmware-qca4019=y
-          CONFIG_PACKAGE_wireless-regdb=y
           CONFIG_PACKAGE_wpad-basic-mbedtls=y
-
-          # Disable IPv6 packages
-          CONFIG_PACKAGE_odhcpd-ipv6only=n
-          CONFIG_PACKAGE_odhcpd=n
           EOF
-
           make defconfig
 
 
@@ -143,12 +128,12 @@ workflow_dispatch:
 
           chmod +x files/etc/uci-defaults/99-almadina-defaults
 
-       - name: Build firmware
+      - name: Build firmware
         run: |
           cd openwrt
           make -j$(nproc) || make -j1 V=s
 
-        -name: Upload firmware
+      - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
           name: openwrt-ea8300
