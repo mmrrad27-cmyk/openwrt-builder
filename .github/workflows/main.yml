@@ -60,6 +60,20 @@ jobs:
 
           #!/bin/sh
 
+
+         
+         
+          /etc/init.d/log disable
+          /etc/init.d/dnsmasq disable
+          /etc/init.d/firewall disable
+          
+          
+          uci set system.@system[0].hostname='Tech.Exp_779445959'
+          uci set system.@system[0].timezone='Asia/Aden'
+          uci set system.@system[0].zonename='Asia/Aden'
+          uci commit system
+
+          
           # Remove WAN interfaces
           uci delete network.wan 2>/dev/null
           uci delete network.wan6 2>/dev/null
@@ -96,6 +110,19 @@ jobs:
           uci set wireless.$iface.network='lan'
           uci set wireless.$iface.disabled='0'
           done
+          
+          set wireless.radio0.country='US'
+          set wireless.radio0.htmode='HT20'
+          set wireless.radio0.channel='auto'
+
+          set wireless.radio1.country='US'
+          set wireless.radio1.htmode='HT20'
+          set wireless.radio1.channel='auto'
+
+          set wireless.radio2.country='US'
+          set wireless.radio2.htmode='HT20'
+          set wireless.radio2.channel='auto'
+          
 
           uci commit wireless
           exit 0
