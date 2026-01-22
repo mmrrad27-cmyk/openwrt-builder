@@ -100,6 +100,8 @@ jobs:
           # Enable all radios
           for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
           uci set wireless.$dev.disabled='0'
+          uci set wireless.$radio.channel='auto'
+          uci set wireless.$radio.country='US'
           done
 
           # Configure all SSIDs
@@ -107,22 +109,12 @@ jobs:
           uci set wireless.$iface.ssid='Almadina'
           uci set wireless.$iface.encryption='none'
           uci set wireless.$iface.mode='ap'
+          uci set wireless.\$iface.wds='1'
           uci set wireless.$iface.network='lan'
           uci set wireless.$iface.disabled='0'
           done
           
-          set wireless.radio0.country='US'
-          set wireless.radio0.htmode='HT20'
-          set wireless.radio0.channel='auto'
-
-          set wireless.radio1.country='US'
-          set wireless.radio1.htmode='HT20'
-          set wireless.radio1.channel='auto'
-
-          set wireless.radio2.country='US'
-          set wireless.radio2.htmode='HT20'
-          set wireless.radio2.channel='auto'
-          
+                    
 
           uci commit wireless
           exit 0
