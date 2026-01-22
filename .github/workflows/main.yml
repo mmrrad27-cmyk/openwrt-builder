@@ -66,9 +66,6 @@ jobs:
           uci commit network
 
 
-          # Disable DHCP
-          uci set dhcp.lan.ignore='1'
-          uci commit dhcp
 
           # Disable DHCP on LAN
           uci set dhcp.lan.ignore='1'
@@ -81,31 +78,7 @@ jobs:
           uci commit dhcp
 
 
-          # Create wireless config from scratch
-          uci -q delete wireless
-          uci set wireless.radio0=wifi-device
-          uci set wireless.radio0.type='mac80211'
-          uci set wireless.radio0.path='soc/40000000.wifi'
-          uci set wireless.radio0.band='2g'
-          uci set wireless.radio0.htmode='HT40'
-          uci set wireless.radio0.channel='auto'
-          uci set wireless.radio0.disabled='0'
-
-          uci set wireless.radio1=wifi-device
-          uci set wireless.radio1.type='mac80211'
-          uci set wireless.radio1.path='soc/44000000.wifi'
-          uci set wireless.radio1.band='5g'
-          uci set wireless.radio1.htmode='VHT80'
-          uci set wireless.radio1.channel='auto'
-          uci set wireless.radio1.disabled='0'
-
-          uci set wireless.radio2=wifi-device
-          uci set wireless.radio2.type='mac80211'
-          uci set wireless.radio2.path='soc/48000000.wifi'
-          uci set wireless.radio2.band='5g'
-          uci set wireless.radio2.htmode='VHT80'
-          uci set wireless.radio2.channel='auto'
-          uci set wireless.radio2.disabled='0'
+         
 
           # Generate wireless config
           wifi config
