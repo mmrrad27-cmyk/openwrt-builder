@@ -114,6 +114,13 @@ jobs:
           uci set dhcp.lan.ignore='1'
           uci commit dhcp
 
+          # Disable default gateway on LAN
+          uci set network.lan.defaultroute='0'
+
+          # Disable IPv6 delegation
+          uci set network.lan.delegate='0'
+          uci commit network
+
           # Disable IPv6 RA and DHCPv6
           uci set dhcp.lan.ra='disabled'
           uci set dhcp.lan.dhcpv6='disabled'
