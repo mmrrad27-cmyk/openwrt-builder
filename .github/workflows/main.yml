@@ -42,6 +42,10 @@ jobs:
           CONFIG_PACKAGE_luci=y
           CONFIG_PACKAGE_luci-ssl=y
           CONFIG_PACKAGE_wpad-basic-mbedtls=y
+          CONFIG_PACKAGE_lldpd=y
+          CONFIG_PACKAGE_luci-proto-lldp=y
+          CONFIG_PACKAGE_watchcat=y
+          CONFIG_PACKAGE_luci-app-watchcat=y
           EOF
           make defconfig
 
@@ -73,6 +77,31 @@ jobs:
           uci set system.@system[0].zonename='Asia/Aden'
           uci commit system
 
+          # Enable LLDP and set hostname + model
+          uci set lldpd.config=lldpd
+          uci set lldpd.config.enable='1'
+          uci set lldpd.config.lldp_class='bridge'
+          uci set lldpd.config.lldp_location='OpenWrt'
+          uci set lldpd.config.lldp_description="$(uname -n) - EA8300"
+
+          uci commit lldpd
+
+          /etc/init.d/lldpd enable
+          /etc/init.d/lldpd start
+
+          # Watchcat (Reboot) – Disabled by default
+          uci set watchcat.@watchcat[0]=watchcat
+          uci set watchcat.@watchcat[0].mode='ping'
+          uci set watchcat.@watchcat[0].pinghosts='8.8.8.8'
+          uci set watchcat.@watchcat[0].period='30'
+          uci set watchcat.@watchcat[0].forcedelay='300'
+          uci set watchcat.@watchcat[0].action='reboot'
+          uci set watchcat.@watchcat[0].enabled='0'
+
+          uci commit watchcat
+
+          /etc/init.d/watchcat disable
+
           
           # Remove WAN interfaces
           uci delete network.wan 2>/dev/null
@@ -100,8 +129,6 @@ jobs:
           # Enable all radios
           for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
           uci set wireless.$dev.disabled='0'
-          uci set wireless.$radio.channel='auto'
-          uci set wireless.$radio.country='US'
           done
 
           # Configure all SSIDs
@@ -109,12 +136,21 @@ jobs:
           uci set wireless.$iface.ssid='Almadina'
           uci set wireless.$iface.encryption='none'
           uci set wireless.$iface.mode='ap'
-          uci set wireless.\$iface.wds='1'
           uci set wireless.$iface.network='lan'
           uci set wireless.$iface.disabled='0'
           done
           
-                    
+          for radio in radio0 radio1 radio2; do
+          uci set wireless.$radio.country='US'
+          uci set wireless.$radio.htmode='HT20'
+          uci set wireless.$radio.channel='auto'
+          done
+
+          for iface in \$(uci show wireless | grep "=wifi-iface" | cut -d. -f2); do
+          uci set wireless.\$iface.mode='ap'
+          uci set wireless.\$iface.wds='1'
+          uci set wireless.\$iface.multicast_to_unicast='1'
+          done
 
           uci commit wireless
           exit 0
