@@ -150,14 +150,3 @@ jobs:
         with:
           name: openwrt-ea8300
           path: openwrt/bin/targets/ipq40xx/generic/*.bin
-
-      - name: Build firmware
-        run: |
-          cd openwrt
-          make -j$(nproc) || make -j1 V=s
-
-      - name: Upload firmware
-        uses: actions/upload-artifact@v4
-        with:
-          name: openwrt-ea8300
-          path: openwrt/bin/targets/ipq40xx/generic/*.bin
