@@ -106,12 +106,12 @@ jobs:
           make defconfig
     
           
-- name: Add default settings
-  run: |
-    cd openwrt
-    mkdir -p files/etc/uci-defaults
+      - name: Add default settings
+        run: |
+          cd openwrt
+          mkdir -p files/etc/uci-defaults
 
-    cat > files/etc/uci-defaults/99-almadina-defaults << 'EOF'
+          cat > files/etc/uci-defaults/99-almadina-defaults << 'EOF'
 #!/bin/sh
 
 # ===============================
