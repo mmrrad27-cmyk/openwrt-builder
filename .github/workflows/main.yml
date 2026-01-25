@@ -112,7 +112,7 @@ jobs:
           mkdir -p files/etc/uci-defaults
 
           cat > files/etc/uci-defaults/99-almadina-defaults << 'EOF'
-#!/bin/sh
+          #!/bin/sh
 
 # ===============================
 # Disable unused services
