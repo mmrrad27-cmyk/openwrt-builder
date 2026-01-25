@@ -114,24 +114,18 @@ jobs:
     cat > files/etc/uci-defaults/99-almadina-defaults << 'EOF'
 #!/bin/sh
 
-# ===============================
-# Disable unused services
-# ===============================
+
 /etc/init.d/log disable
 /etc/init.d/dnsmasq disable
 /etc/init.d/firewall disable
 
-# ===============================
-# System settings
-# ===============================
+
 uci set system.@system[0].hostname='Tech.Exp_779445959'
 uci set system.@system[0].timezone='Asia/Aden'
 uci set system.@system[0].zonename='Asia/Aden'
 uci commit system
 
-# ===============================
-# Enable LLDP (basic – enough for Mikrotik Neighbours)
-# ===============================
+
 uci set lldpd.config=lldpd
 uci set lldpd.config.enable='1'
 uci set lldpd.config.lldp_class='bridge'
@@ -139,9 +133,7 @@ uci set lldpd.config.lldp_description="$(uname -n)"
 uci commit lldpd
 /etc/init.d/lldpd enable
 
-# ===============================
-# Watchcat (installed but disabled)
-# ===============================
+
 uci set watchcat.@watchcat[0]=watchcat
 uci set watchcat.@watchcat[0].mode='ping'
 uci set watchcat.@watchcat[0].pinghosts='8.8.8.8'
@@ -152,9 +144,7 @@ uci set watchcat.@watchcat[0].enabled='0'
 uci commit watchcat
 /etc/init.d/watchcat disable
 
-# ===============================
-# Network cleanup
-# ===============================
+
 uci delete network.wan 2>/dev/null
 uci delete network.wan6 2>/dev/null
 uci commit network
@@ -171,9 +161,7 @@ uci set dhcp.lan.dhcpv6='disabled'
 uci set dhcp.lan.ndp='disabled'
 uci commit dhcp
 
-# ===============================
-# Wireless (FIRST BOOT ONLY)
-# ===============================
+
 wifi config
 
 for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
@@ -195,9 +183,7 @@ done
 
 uci commit wireless
 
-# ===============================
-# IMPORTANT: remove after first boot
-# ===============================
+
 exit 0
 EOF
 
