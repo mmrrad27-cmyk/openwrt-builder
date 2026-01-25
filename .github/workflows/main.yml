@@ -54,114 +54,166 @@ jobs:
 
 
 
-      - name: Add default settings
+name: Build OpenWrt EA8300
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential clang flex bison g++ gawk \
+            gcc-multilib g++-multilib gettext git libncurses-dev \
+            libssl-dev python3-distutils rsync unzip zlib1g-dev \
+            file wget
+
+      - name: Clone OpenWrt
+        run: |
+          git clone https://github.com/openwrt/openwrt.git
+          cd openwrt
+          git checkout v24.10.0
+
+      - name: Update feeds
         run: |
           cd openwrt
-            mkdir -p files/etc/uci-defaults
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
-          cat > files/etc/uci-defaults/99-almadina-defaults << 'EOF'
-          #!/bin/sh
-
-                
-         
-          /etc/init.d/log disable
-          /etc/init.d/dnsmasq disable
-          /etc/init.d/firewall disable
-          
-          
-          uci set system.@system[0].hostname='Tech.Exp_779445959'
-          uci set system.@system[0].timezone='Asia/Aden'
-          uci set system.@system[0].zonename='Asia/Aden'
-          uci commit system
-
-          # Enable LLDP and set hostname + model
-          uci set lldpd.config=lldpd
-          uci set lldpd.config.enable='1'
-          uci set lldpd.config.lldp_class='bridge'
-          uci set lldpd.config.lldp_location='OpenWrt'
-          uci set lldpd.config.lldp_description="$(uname -n) - EA8300"
-
-          uci commit lldpd
-
-          /etc/init.d/lldpd enable
-          /etc/init.d/lldpd start
-
-          # Watchcat (Reboot) – Disabled by default
-          uci set watchcat.@watchcat[0]=watchcat
-          uci set watchcat.@watchcat[0].mode='ping'
-          uci set watchcat.@watchcat[0].pinghosts='8.8.8.8'
-          uci set watchcat.@watchcat[0].period='30'
-          uci set watchcat.@watchcat[0].forcedelay='300'
-          uci set watchcat.@watchcat[0].action='reboot'
-          uci set watchcat.@watchcat[0].enabled='0'
-
-          uci commit watchcat
-
-          /etc/init.d/watchcat disable
-
-          
-          # Remove WAN interfaces
-          uci delete network.wan 2>/dev/null
-          uci delete network.wan6 2>/dev/null
-          uci commit network
-
-
-
-          # Disable DHCP on LAN
-          uci set dhcp.lan.ignore='1'
-          uci commit dhcp
-
-          # Disable default gateway on LAN
-          uci set network.lan.defaultroute='0'
-
-          # Disable IPv6 delegation
-          uci set network.lan.delegate='0'
-          uci commit network
-
-          # Disable IPv6 RA and DHCPv6
-          uci set dhcp.lan.ra='disabled'
-          uci set dhcp.lan.dhcpv6='disabled'
-          uci set dhcp.lan.ndp='disabled'
-          uci commit dhcp
-
-
-         
-
-          # Generate wireless config
-          
-
-          # Enable all radios
-          for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
-          uci set wireless.$dev.disabled='0'
-          done
-
-          # Configure all SSIDs
-          for iface in $(uci show wireless | grep "=wifi-iface" | cut -d. -f2 | cut -d= -f1); do
-          uci set wireless.$iface.ssid='Almadina'
-          uci set wireless.$iface.encryption='none'
-          uci set wireless.$iface.mode='ap'
-          uci set wireless.$iface.network='lan'
-          uci set wireless.$iface.disabled='0'
-          done
-          
-          for radio in radio0 radio1 radio2; do
-          uci set wireless.$radio.country='US'
-          uci set wireless.$radio.htmode='HT20'
-          uci set wireless.$radio.channel='auto'
-          done
-
-          for iface in \$(uci show wireless | grep "=wifi-iface" | cut -d. -f2); do
-          uci set wireless.\$iface.mode='ap'
-          uci set wireless.\$iface.wds='1'
-          uci set wireless.\$iface.multicast_to_unicast='1'
-          done
-
-          uci commit wireless
-          
-          exit 0
+      - name: Configure target
+        run: |
+          cd openwrt
+          cat > .config << 'EOF'
+          CONFIG_TARGET_ipq40xx=y
+          CONFIG_TARGET_ipq40xx_generic=y
+          CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea8300=y
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-ssl=y
+          CONFIG_PACKAGE_wpad-basic-mbedtls=y
+          CONFIG_PACKAGE_lldpd=y
+          CONFIG_PACKAGE_luci-proto-lldp=y
+          CONFIG_PACKAGE_watchcat=y
+          CONFIG_PACKAGE_luci-app-watchcat=y
           EOF
+          make defconfig
+    
+          
+- name: Add default settings
+  run: |
+    cd openwrt
+    mkdir -p files/etc/uci-defaults
 
-          chmod +x files/etc/uci-defaults/99-almadina-defaults
+    cat > files/etc/uci-defaults/99-almadina-defaults << 'EOF'
+#!/bin/sh
+
+# ===============================
+# Disable unused services
+# ===============================
+/etc/init.d/log disable
+/etc/init.d/dnsmasq disable
+/etc/init.d/firewall disable
+
+# ===============================
+# System settings
+# ===============================
+uci set system.@system[0].hostname='Tech.Exp_779445959'
+uci set system.@system[0].timezone='Asia/Aden'
+uci set system.@system[0].zonename='Asia/Aden'
+uci commit system
+
+# ===============================
+# Enable LLDP (basic – enough for Mikrotik Neighbours)
+# ===============================
+uci set lldpd.config=lldpd
+uci set lldpd.config.enable='1'
+uci set lldpd.config.lldp_class='bridge'
+uci set lldpd.config.lldp_description="$(uname -n)"
+uci commit lldpd
+/etc/init.d/lldpd enable
+
+# ===============================
+# Watchcat (installed but disabled)
+# ===============================
+uci set watchcat.@watchcat[0]=watchcat
+uci set watchcat.@watchcat[0].mode='ping'
+uci set watchcat.@watchcat[0].pinghosts='8.8.8.8'
+uci set watchcat.@watchcat[0].period='30'
+uci set watchcat.@watchcat[0].forcedelay='300'
+uci set watchcat.@watchcat[0].action='reboot'
+uci set watchcat.@watchcat[0].enabled='0'
+uci commit watchcat
+/etc/init.d/watchcat disable
+
+# ===============================
+# Network cleanup
+# ===============================
+uci delete network.wan 2>/dev/null
+uci delete network.wan6 2>/dev/null
+uci commit network
+
+uci set dhcp.lan.ignore='1'
+uci commit dhcp
+
+uci set network.lan.defaultroute='0'
+uci set network.lan.delegate='0'
+uci commit network
+
+uci set dhcp.lan.ra='disabled'
+uci set dhcp.lan.dhcpv6='disabled'
+uci set dhcp.lan.ndp='disabled'
+uci commit dhcp
+
+# ===============================
+# Wireless (FIRST BOOT ONLY)
+# ===============================
+wifi config
+
+for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
+  uci set wireless.$dev.disabled='0'
+  uci set wireless.$dev.country='US'
+  uci set wireless.$dev.htmode='HT20'
+  uci set wireless.$dev.channel='auto'
+done
+
+for iface in $(uci show wireless | grep "=wifi-iface" | cut -d. -f2 | cut -d= -f1); do
+  uci set wireless.$iface.ssid='Almadina'
+  uci set wireless.$iface.mode='ap'
+  uci set wireless.$iface.network='lan'
+  uci set wireless.$iface.encryption='none'
+  uci set wireless.$iface.wds='1'
+  uci set wireless.$iface.multicast_to_unicast='1'
+  uci set wireless.$iface.disabled='0'
+done
+
+uci commit wireless
+
+# ===============================
+# IMPORTANT: remove after first boot
+# ===============================
+exit 0
+EOF
+
+    chmod +x files/etc/uci-defaults/99-almadina-defaults
+
+
+      - name: Build firmware
+        run: |
+          cd openwrt
+          make -j$(nproc) || make -j1 V=s
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-ea8300
+          path: openwrt/bin/targets/ipq40xx/generic/*.bin
 
       - name: Build firmware
         run: |
