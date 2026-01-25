@@ -128,7 +128,7 @@ jobs:
          
 
           # Generate wireless config
-          wifi config
+          
 
           # Enable all radios
           for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
