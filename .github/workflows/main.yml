@@ -116,7 +116,7 @@ jobs:
 
           for dev in $(uci show wireless | grep "=wifi-device" | cut -d. -f2 | cut -d= -f1); do
           uci set wireless.$dev.disabled='0'
-          uci set wireless.$dev.country='US'
+          uci set wireless.$dev.country='PA'
           uci set wireless.$dev.htmode='HT20'
           uci set wireless.$dev.channel='auto'
           done
